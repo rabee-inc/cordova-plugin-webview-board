@@ -1,6 +1,6 @@
 'use strict';
 
-class CordovaWebviewBoard {
+class WebviewBoard {
   constructor(params) {
     this.exec = require('cordova/exec');
     this._listener = {};
@@ -80,4 +80,4 @@ class CordovaWebviewBoard {
 }
 
 
-module.exports = new CordovaWebviewBoard();
+module.exports = new WebviewBoard();

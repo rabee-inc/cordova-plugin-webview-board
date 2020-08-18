@@ -5,8 +5,8 @@
 	<engines>
 		<engine name="cordova-android" version=">=7.1.0" />
 	</engines>
-  <js-module src="www/CordovaWebviewBoard.js" name='CordovaWebviewBoard' >
-    <clobbers target="CordovaWebviewBoard" />
+  <js-module src="www/CordovaWebviewBoard.js" name='WebviewBoard' >
+    <clobbers target="WebviewBoard" />
   </js-module>
   
   <!-- iOS -->
