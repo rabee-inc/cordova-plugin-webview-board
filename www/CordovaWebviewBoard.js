@@ -77,6 +77,26 @@ class WebviewBoard {
     this._listener[event] = [];
   };
 
+  add(params) {
+    return this.createAction('add', params)
+  }
+
+  show(params) {
+    return this.createAction('show', params)
+  }
+
+  load(params) {
+    return this.createAction('load', params)
+  }
+
+  forward(params) {
+    return this.createAction('forward', params)
+  }
+
+  back(params) {
+    return this.createAction('back', params)
+  }
+
 }
 
 

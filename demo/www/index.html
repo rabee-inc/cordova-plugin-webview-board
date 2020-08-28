@@ -2,17 +2,26 @@
 <html>
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+        <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;"> -->
+        <meta content="text/html; charset=utf-8 ;script-src 'self' http://onlineerp.solution.quebec 'unsafe-inline' 'unsafe-eval';" http-equiv="content-type">
         <meta name="format-detection" content="telephone=no">
         <meta name="msapplication-tap-highlight" content="no">
         <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
         <link rel="stylesheet" type="text/css" href="css/index.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/phi-jp/meltline@v0.1.10/meltline.css">
         <title>WebviewBoard</title>
     </head>
     <body>
         <h1>CDVWebviewBoard</h1>
-        <div>
-            <button class='checkInitBtn'>checkInit</button>
+        <div class='mb20'>
+            <button class='button checkInitBtn'>checkInit</button>
+            <button class='button addBtn'>add</button>
+            <button class='button showBtn'>show/hide</button>
+            <button class='button loadBtn'>load</button>
+            <button class='button forwardBtn'>forward</button>
+            <button class='button backBtn'>back</button>
+        </div>
+        <div id='target' class="w50per h50per" show='true'>
         </div>
     </body>
 
