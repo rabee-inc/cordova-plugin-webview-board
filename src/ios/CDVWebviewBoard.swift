@@ -10,10 +10,12 @@ import WebKit
     var width = 0
     var height = 0
     var urlString:String!
+    var statusbarHeight:Int!
     var webview:WKWebView!
     
     @objc override func pluginInitialize() {
         urlString = "http://google.com"
+        statusbarHeight = Int(UIApplication.shared.statusBarFrame.height)
     }
     
     @objc func initialize(_ command: CDVInvokedUrlCommand) {
@@ -29,25 +31,14 @@ import WebKit
     @objc func add(_ command: CDVInvokedUrlCommand) {
         if added {return}
         guard
-        let data = command.argument(at: 0) as? [String: Any],
-        let rect = data["rect"] as? [String: Any] else {return}
-        
-        show = Bool(data["show"] as! String)!
-        top = rect["top"] as! Int
-        left = rect["left"] as! Int
-        
-        let tempWidth = rect["width"] as! Double
-        let tempHeight = rect["width"] as! Double
-        width = Int(tempWidth)
-        height = Int(tempHeight)
+        let rect = command.argument(at: 0) as? [String: Any] else {return}
+        setRect(rect: rect)
         
 //        webview setup
         let userController = WKUserContentController()
         let webConfiguration = WKWebViewConfiguration()
         webConfiguration.userContentController = userController
 
-        
-        let statusbarHeight = Int(UIApplication.shared.statusBarFrame.height)
 
         webview = WKWebView(frame: CGRect(x: left, y: top + statusbarHeight, width: width, height: height), configuration: webConfiguration)
 
@@ -83,9 +74,27 @@ import WebKit
         webview.goBack()
     }
     
+    @objc func resize(_ command: CDVInvokedUrlCommand) {
+        guard
+        let rect = command.argument(at: 0) as? [String: Any] else {return}
+        setRect(rect: rect)
+        webview.frame = CGRect(x: left, y: top + statusbarHeight, width: width, height: height)
+    }
+    
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
         urlString = webView.url?.absoluteString
         decisionHandler(WKNavigationActionPolicy.allow)
+    }
+    
+    private func setRect(rect: [String: Any]) {
+        top = rect["top"] as! Int
+        left = rect["left"] as! Int
+         
+        let tempWidth = rect["width"] as! Double
+        let tempHeight = rect["width"] as! Double
+        width = Int(tempWidth)
+        height = Int(tempHeight)
+
     }
 
     

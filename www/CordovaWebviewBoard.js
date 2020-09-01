@@ -97,6 +97,10 @@ class WebviewBoard {
     return this.createAction('back', params)
   }
 
+  resize(params) {
+    return this.createAction('resize', params)
+  }
+
 }
 
 
