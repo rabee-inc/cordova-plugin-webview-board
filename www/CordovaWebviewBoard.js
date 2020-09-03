@@ -4,6 +4,7 @@ class WebviewBoard {
   constructor(params) {
     this.exec = require('cordova/exec');
     this._listener = {};
+    this.registerEvents('message', 'setOnFunctionCallback', params);
   }
 
   initialize(params) {

@@ -2,7 +2,7 @@ document.addEventListener('deviceready', onDeviceReady, false);
 
 function onDeviceReady() {   	
     WebviewBoard.initialize().then(() => {
-        window.alert('initialized')
+        window.alert('initialized');
     });
     
     const checkInitBtn = document.querySelector('.checkInitBtn');
@@ -57,4 +57,14 @@ function onDeviceReady() {
     backBtn.addEventListener('click', () => {
         WebviewBoard.back();
     });
+
+    WebviewBoard.on('message', ({eventName, data}) => {
+        switch(eventName) {
+            case "alert":
+                window.alert(data);
+                break;
+            default:
+                break;
+        }
+    })
 }

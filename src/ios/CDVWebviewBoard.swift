@@ -1,7 +1,8 @@
 import UIKit
 import WebKit
 
-@objc(CDVWebviewBoard ) class CDVWebviewBoard: CDVPlugin, WKNavigationDelegate, WKUIDelegate {
+@objc(CDVWebviewBoard ) class CDVWebviewBoard: CDVPlugin, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
+    
     
     var show = false
     var added = false
@@ -10,11 +11,12 @@ import WebKit
     var width = 0
     var height = 0
     var urlString:String!
+    var functionCallbackId = ""
     var statusbarHeight:Int!
     var webview:WKWebView!
     
     @objc override func pluginInitialize() {
-        urlString = "http://google.com"
+        urlString = Bundle.main.path(forResource: "www/subview", ofType: "html")
         statusbarHeight = Int(UIApplication.shared.statusBarFrame.height)
     }
     
@@ -29,25 +31,25 @@ import WebKit
     }
     
     @objc func add(_ command: CDVInvokedUrlCommand) {
+//        addしてたらreturn
         if added {return}
         guard
         let rect = command.argument(at: 0) as? [String: Any] else {return}
+//        set sizes
         setRect(rect: rect)
         
 //        webview setup
         let userController = WKUserContentController()
+        userController.add(self, name: "native")
         let webConfiguration = WKWebViewConfiguration()
         webConfiguration.userContentController = userController
-
-
         webview = WKWebView(frame: CGRect(x: left, y: top + statusbarHeight, width: width, height: height), configuration: webConfiguration)
+        self.webview.uiDelegate = self
+        self.webview.navigationDelegate = self
 
-        webview.uiDelegate = self
-        webview.navigationDelegate = self
-
-        let url = URL(string: urlString)!
-        let urlRequest = URLRequest(url: url)
-        webview.load(urlRequest)
+//        set url
+        let url = URL(fileURLWithPath: urlString, isDirectory: false)
+        webview.loadFileURL(url, allowingReadAccessTo: url)
         self.webView.addSubview(webview)
 
         added = true
@@ -86,6 +88,39 @@ import WebKit
         decisionHandler(WKNavigationActionPolicy.allow)
     }
     
+    struct MessageEvent {
+        var eventName: String?
+        var data: String?
+        
+        init(message: WKScriptMessage) {
+            guard let body = message.body as? NSDictionary else {
+                return
+            }
+            self.eventName = body["eventName"] as? String
+            self.data = body["data"] as? String
+        }
+    }
+
+    
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        switch message.name {
+        case "native":
+            let body = MessageEvent(message: message)
+
+            
+            let data = [
+                "eventName": body.eventName!,
+                "data": body.data!
+            ]
+            let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data)
+            result?.keepCallback = true
+            commandDelegate.send(result, callbackId: functionCallbackId)
+        default:
+            break
+        }
+    }
+
+    
     private func setRect(rect: [String: Any]) {
         top = rect["top"] as! Int
         left = rect["left"] as! Int
@@ -95,6 +130,10 @@ import WebKit
         width = Int(tempWidth)
         height = Int(tempHeight)
 
+    }
+    
+    @objc func setOnFunctionCallback(_ command: CDVInvokedUrlCommand) {
+        functionCallbackId = command.callbackId
     }
 
     
