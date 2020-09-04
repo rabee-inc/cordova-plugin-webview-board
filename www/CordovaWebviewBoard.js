@@ -88,8 +88,9 @@ class WebviewBoard {
     this._listener[event] = [];
   };
 
-  add(params) {
-    return this.createAction('add', params)
+  add(element, options) {
+    this.observer.observe(element, { attributes: true, characterData: true});
+    return this.createAction('add', options)
   }
 
   show(params) {
@@ -110,10 +111,6 @@ class WebviewBoard {
 
   resize(params) {
     return this.createAction('resize', params)
-  }
-
-  observe(element) {
-    this.observer.observe(element, { attributes: true, characterData: true});
   }
 
 }

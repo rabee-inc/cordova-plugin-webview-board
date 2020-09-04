@@ -9,18 +9,23 @@ import WebKit
     var webview:WKWebView?
     
     struct Rect {
-        var top: Int
-        var left: Int
-        var width: Int
-        var height: Int
+        var top = 0
+        var left = 0
+        var width = 0
+        var height = 0
         
         init(data: [String: Any]) {
-            top = data["top"] as! Int
-            left = data["left"] as! Int
-            let tempWidth = data["width"] as! Double
-            let tempHeight = data["height"] as! Double
-            width = Int(tempWidth)
-            height = Int(tempHeight)
+            guard
+            let tempTop = data["top"],
+            let tempLeft = data["left"],
+            let tempWidth = data["width"],
+            let tempHeight = data["height"] else {
+                return
+            }
+            top = tempTop as! Int
+            left = tempLeft as! Int
+            width = Int(tempWidth as! Double)
+            height = Int(tempHeight as! Double)
         }
     }
     
@@ -61,7 +66,6 @@ import WebKit
         let data = command.argument(at: 0) as? [String: Any],
         let urlTemp = data["url"] as? String,
         let rectData = data["rect"] as? [String : Any],
-//            let rect = Rect(rect: data["rect"] as! [String : Int]),
         !isAdded() else {return}
 //        set sizes
         let rect = Rect(data: rectData)

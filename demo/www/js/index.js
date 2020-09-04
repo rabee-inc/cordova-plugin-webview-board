@@ -20,7 +20,7 @@ function onDeviceReady() {
             url: "http://google.com",
             rect: element.getBoundingClientRect(),
         }
-        WebviewBoard.add(data).then(() => {
+        WebviewBoard.add(element, data).then(() => {
             window.alert('added!!');
         });
     });
@@ -28,17 +28,6 @@ function onDeviceReady() {
     window.addEventListener('resize', () => {
         WebviewBoard.resize(element.getBoundingClientRect());
     });
-
-    // const observer = new MutationObserver(mutations => {
-    //     mutations.forEach(mutation => {
-    //         if (mutation.type === "attributes") {
-    //             if (mutation.attributeName === "show") {
-    //                 WebviewBoard.show(isShown);
-    //             }
-    //         }
-    //     });
-    // });
-    WebviewBoard.observe(element);
     
     const showBtn = document.querySelector('.showBtn');
     // var isShown = false;
