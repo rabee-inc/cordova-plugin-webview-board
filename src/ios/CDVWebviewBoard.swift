@@ -16,29 +16,32 @@ import WebKit
         
         init(data: [String: Any]) {
             guard
-            let tempTop = data["top"],
-            let tempLeft = data["left"],
-            let tempWidth = data["width"],
-            let tempHeight = data["height"] else {
+            let tempTop = data["top"] as? Int,
+            let tempLeft = data["left"] as? Int,
+            let tempWidth = data["width"] as? Double,
+            let tempHeight = data["height"]as? Double else {
                 return
             }
-            top = tempTop as! Int
-            left = tempLeft as! Int
-            width = Int(tempWidth as! Double)
-            height = Int(tempHeight as! Double)
+            top = tempTop
+            left = tempLeft
+            width = Int(tempWidth)
+            height = Int(tempHeight)
         }
     }
     
     struct MessageEvent {
         var eventName: String?
-        var data: String?
+        var data: Any?
         
         init(message: WKScriptMessage) {
-            guard let body = message.body as? NSDictionary else {
+            guard
+            let body = message.body as? NSDictionary,
+            let eventNameData = body["eventName"] as? String
+            else {
                 return
             }
-            self.eventName = body["eventName"] as? String
-            self.data = body["data"] as? String
+            eventName = eventNameData
+            data = body["data"]
         }
     }
 
@@ -144,10 +147,10 @@ import WebKit
 
             
             let data = [
-                "eventName": body.eventName!,
-                "data": body.data!
+                "eventName": body.eventName,
+                "data": body.data
             ]
-            let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data)
+            let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [String : Any])
             result?.keepCallback = true
             commandDelegate.send(result, callbackId: functionCallbackId)
         default:
