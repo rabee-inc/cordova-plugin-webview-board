@@ -24,6 +24,21 @@ import WebKit
         }
     }
     
+    struct MessageEvent {
+        var eventName: String?
+        var data: String?
+        
+        init(message: WKScriptMessage) {
+            guard let body = message.body as? NSDictionary else {
+                return
+            }
+            self.eventName = body["eventName"] as? String
+            self.data = body["data"] as? String
+        }
+    }
+
+
+    
     @objc override func pluginInitialize() {
 //        code for inspection
 //        urlString = Bundle.main.path(forResource: "www/subview", ofType: "html")
@@ -117,21 +132,7 @@ import WebKit
         let rect = Rect(data: rectData)
         webview!.frame = CGRect(x: rect.left, y: rect.top + statusbarHeight, width: rect.width, height: rect.height)
     }
-        
-    struct MessageEvent {
-        var eventName: String?
-        var data: String?
-        
-        init(message: WKScriptMessage) {
-            guard let body = message.body as? NSDictionary else {
-                return
-            }
-            self.eventName = body["eventName"] as? String
-            self.data = body["data"] as? String
-        }
-    }
-
-    
+            
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.name {
         case "native":
