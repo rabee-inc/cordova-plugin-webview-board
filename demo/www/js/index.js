@@ -15,8 +15,12 @@ function onDeviceReady() {
     var element = document.getElementById('target');
     const addBtn = document.querySelector('.addBtn');
     addBtn.addEventListener('click', () => {
-        isShown = true;
-        WebviewBoard.add(element.getBoundingClientRect()).then(() => {
+        WebviewBoard.isShown = true;
+        var data = {
+            url: "http://google.com",
+            rect: element.getBoundingClientRect(),
+        }
+        WebviewBoard.add(data).then(() => {
             window.alert('added!!');
         });
     });
@@ -25,22 +29,22 @@ function onDeviceReady() {
         WebviewBoard.resize(element.getBoundingClientRect());
     });
 
-    const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            if (mutation.type === "attributes") {
-                if (mutation.attributeName === "show") {
-                    WebviewBoard.show(isShown);
-                }
-            }
-        });
-    });
-    observer.observe(element, { attributes: true, characterData: true})
+    // const observer = new MutationObserver(mutations => {
+    //     mutations.forEach(mutation => {
+    //         if (mutation.type === "attributes") {
+    //             if (mutation.attributeName === "show") {
+    //                 WebviewBoard.show(isShown);
+    //             }
+    //         }
+    //     });
+    // });
+    WebviewBoard.observe(element);
     
     const showBtn = document.querySelector('.showBtn');
-    var isShown = false;
+    // var isShown = false;
     showBtn.addEventListener('click', () => {
-        element.setAttribute('show', isShown);
-        isShown = !isShown;
+        element.setAttribute('show', WebviewBoard.isShown);
+        WebviewBoard.isShown = !WebviewBoard.isShown;
     });
 
     const loadBtn = document.querySelector('.loadBtn');
@@ -66,5 +70,5 @@ function onDeviceReady() {
             default:
                 break;
         }
-    })
+    });
 }

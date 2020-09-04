@@ -3,20 +3,30 @@ import WebKit
 
 @objc(CDVWebviewBoard ) class CDVWebviewBoard: CDVPlugin, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler {
     
-    
-    var show = false
-    var added = false
-    var top = 0
-    var left = 0
-    var width = 0
-    var height = 0
     var urlString:String!
     var functionCallbackId = ""
     var statusbarHeight:Int!
-    var webview:WKWebView!
+    var webview:WKWebView?
+    
+    struct Rect {
+        var top: Int
+        var left: Int
+        var width: Int
+        var height: Int
+        
+        init(data: [String: Any]) {
+            top = data["top"] as! Int
+            left = data["left"] as! Int
+            let tempWidth = data["width"] as! Double
+            let tempHeight = data["height"] as! Double
+            width = Int(tempWidth)
+            height = Int(tempHeight)
+        }
+    }
     
     @objc override func pluginInitialize() {
-        urlString = Bundle.main.path(forResource: "www/subview", ofType: "html")
+//        code for inspection
+//        urlString = Bundle.main.path(forResource: "www/subview", ofType: "html")
         statusbarHeight = Int(UIApplication.shared.statusBarFrame.height)
     }
     
@@ -31,63 +41,83 @@ import WebKit
     }
     
     @objc func add(_ command: CDVInvokedUrlCommand) {
-//        addしてたらreturn
-        if added {return}
+
         guard
-        let rect = command.argument(at: 0) as? [String: Any] else {return}
+        let data = command.argument(at: 0) as? [String: Any],
+        let urlTemp = data["url"] as? String,
+        let rectData = data["rect"] as? [String : Any],
+//            let rect = Rect(rect: data["rect"] as! [String : Int]),
+        !isAdded() else {return}
 //        set sizes
-        setRect(rect: rect)
+        let rect = Rect(data: rectData)
         
 //        webview setup
         let userController = WKUserContentController()
         userController.add(self, name: "native")
         let webConfiguration = WKWebViewConfiguration()
         webConfiguration.userContentController = userController
-        webview = WKWebView(frame: CGRect(x: left, y: top + statusbarHeight, width: width, height: height), configuration: webConfiguration)
-        self.webview.uiDelegate = self
-        self.webview.navigationDelegate = self
+        webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top + statusbarHeight, width: rect.width, height: rect.height), configuration: webConfiguration)
+        self.webview!.uiDelegate = self
+        self.webview!.navigationDelegate = self
 
 //        set url
-        let url = URL(fileURLWithPath: urlString, isDirectory: false)
-        webview.loadFileURL(url, allowingReadAccessTo: url)
-        self.webView.addSubview(webview)
-
-        added = true
+        urlString = urlTemp
+//        let url = URL(fileURLWithPath: urlString, isDirectory: false)
+        let url = URL(string: urlString)
+        let urlRequest = URLRequest(url: url!)
+        webview!.load(urlRequest)
+        self.webView.addSubview(webview!)
 
         let result = CDVPluginResult(status: CDVCommandStatus_OK)
         commandDelegate.send(result, callbackId: command.callbackId)
     }
     
     @objc func show(_ command: CDVInvokedUrlCommand) {
+        guard isAdded() else {
+            let result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "まだ初期化されていません")
+            commandDelegate.send(result, callbackId: command.callbackId)
+            return
+        }
         let shouldShow = command.argument(at: 0) as! Bool
-        webview.isHidden = !shouldShow
+        webview!.isHidden = !shouldShow
     }
     
     @objc func load(_ command: CDVInvokedUrlCommand) {
+        guard isAdded() else {
+            let result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "まだ初期化されていません")
+            commandDelegate.send(result, callbackId: command.callbackId)
+            return
+        }
+        
         let loadRequest = URLRequest(url: URL(string: urlString)!)
-        webview.load(loadRequest)
+        webview!.load(loadRequest)
     }
     
     @objc func forward(_ command: CDVInvokedUrlCommand) {
-        webview.goForward()
+        guard isAdded() else {
+            let result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "まだ初期化されていません")
+            commandDelegate.send(result, callbackId: command.callbackId)
+            return
+        }
+        webview!.goForward()
     }
     
     @objc func back(_ command: CDVInvokedUrlCommand) {
-        webview.goBack()
+        guard isAdded() else {
+            let result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "まだ初期化されていません")
+            commandDelegate.send(result, callbackId: command.callbackId)
+            return
+        }
+        webview!.goBack()
     }
     
     @objc func resize(_ command: CDVInvokedUrlCommand) {
         guard
-        let rect = command.argument(at: 0) as? [String: Any] else {return}
-        setRect(rect: rect)
-        webview.frame = CGRect(x: left, y: top + statusbarHeight, width: width, height: height)
+        let rectData = command.argument(at: 0) as? [String: Any] else {return}
+        let rect = Rect(data: rectData)
+        webview!.frame = CGRect(x: rect.left, y: rect.top + statusbarHeight, width: rect.width, height: rect.height)
     }
-    
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        urlString = webView.url?.absoluteString
-        decisionHandler(WKNavigationActionPolicy.allow)
-    }
-    
+        
     struct MessageEvent {
         var eventName: String?
         var data: String?
@@ -119,23 +149,21 @@ import WebKit
             break
         }
     }
-
     
-    private func setRect(rect: [String: Any]) {
-        top = rect["top"] as! Int
-        left = rect["left"] as! Int
-         
-        let tempWidth = rect["width"] as! Double
-        let tempHeight = rect["width"] as! Double
-        width = Int(tempWidth)
-        height = Int(tempHeight)
-
+    private func isAdded() -> Bool {
+        return webview != nil
     }
     
     @objc func setOnFunctionCallback(_ command: CDVInvokedUrlCommand) {
         functionCallbackId = command.callbackId
     }
 
-    
 }
 
+extension CDVWebviewBoard {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+        self.urlString = webView.url?.absoluteString
+        decisionHandler(WKNavigationResponsePolicy.allow)
+    }
+
+}
