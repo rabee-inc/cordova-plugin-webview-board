@@ -4,6 +4,16 @@ class WebviewBoard {
   constructor(params) {
     this.exec = require('cordova/exec');
     this._listener = {};
+    this.isShown = false;
+    this.registerEvents('message', 'setOnFunctionCallback', params);
+    this.observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        const {type, attributeName} = mutation;
+        if (type === "attributes" && attributeName === 'show') {
+          this.show(this.isShown);
+        }
+      });
+    });
   }
 
   initialize(params) {
@@ -76,6 +86,31 @@ class WebviewBoard {
   clearEventListner(event) {
     this._listener[event] = [];
   };
+
+  add(element, options) {
+    this.observer.observe(element, { attributes: true, characterData: true});
+    return this.createAction('add', options)
+  }
+
+  show(params) {
+    return this.createAction('show', params)
+  }
+
+  load(params) {
+    return this.createAction('load', params)
+  }
+
+  forward(params) {
+    return this.createAction('forward', params)
+  }
+
+  back(params) {
+    return this.createAction('back', params)
+  }
+
+  resize(params) {
+    return this.createAction('resize', params)
+  }
 
 }
 
