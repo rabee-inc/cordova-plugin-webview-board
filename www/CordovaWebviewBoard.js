@@ -8,11 +8,10 @@ class WebviewBoard {
     this.registerEvents('message', 'setOnFunctionCallback', params);
     this.observer = new MutationObserver(mutations => {
       mutations.forEach(mutation => {
-          if (mutation.type === "attributes") {
-              if (mutation.attributeName === "show") {
-                  this.show(this.isShown);
-              }
-          }
+        const {type, attributeName} = mutation;
+        if (type === "attributes" && attributeName === 'show') {
+          this.show(this.isShown);
+        }
       });
     });
   }
