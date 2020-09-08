@@ -5,7 +5,6 @@ import WebKit
     
     var urlString:String!
     var functionCallbackId = ""
-    var statusbarHeight:Int!
     var webview:WKWebView?
     
     struct Rect {
@@ -50,7 +49,6 @@ import WebKit
     @objc override func pluginInitialize() {
 //        code for inspection
 //        urlString = Bundle.main.path(forResource: "www/subview", ofType: "html")
-        statusbarHeight = Int(UIApplication.shared.statusBarFrame.height)
     }
     
     @objc func initialize(_ command: CDVInvokedUrlCommand) {
@@ -84,7 +82,7 @@ import WebKit
         userController.add(self, name: "native")
         let webConfiguration = WKWebViewConfiguration()
         webConfiguration.userContentController = userController
-        webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top + statusbarHeight, width: rect.width, height: rect.height), configuration: webConfiguration)
+        webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height), configuration: webConfiguration)
         self.webview!.uiDelegate = self
         self.webview!.navigationDelegate = self
 
@@ -150,7 +148,7 @@ import WebKit
         guard
         let rectData = command.argument(at: 0) as? [String: Any] else {return}
         let rect = Rect(data: rectData)
-        webview!.frame = CGRect(x: rect.left, y: rect.top + statusbarHeight, width: rect.width, height: rect.height)
+        webview!.frame = CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height)
     }
     
     private func isAdded() -> Bool {
