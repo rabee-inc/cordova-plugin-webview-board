@@ -29,18 +29,17 @@ import WebKit
     }
     
     struct MessageEvent {
-        var eventName: String?
+        var event_name: String?
         var data: Any?
         
-        init(message: WKScriptMessage) {
+        init(message: [String: Any]) {
             guard
-            let body = message.body as? NSDictionary,
-            let eventNameData = body["eventName"] as? String
+            let event_name_data = message["event_name"] as? String
             else {
                 return
             }
-            eventName = eventNameData
-            data = body["data"]
+            event_name = event_name_data
+            data = message["data"]
         }
     }
 
@@ -172,16 +171,27 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate  {
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.name {
         case "native":
-            let body = MessageEvent(message: message)
+            do {
+                let message_body = message.body as! String
+                let json = message_body.data(using: .utf8)!
+                let serialized_message = try JSONSerialization.jsonObject(with: json, options: []) as? [String: Any]
+                let body = MessageEvent(message: serialized_message!)
 
-            
-            let data = [
-                "eventName": body.eventName,
-                "data": body.data
-            ]
-            let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [String : Any])
-            result?.keepCallback = true
-            commandDelegate.send(result, callbackId: functionCallbackId)
+                
+                let data = [
+                    "event_name": body.event_name,
+                    "data": body.data
+                ]
+                let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: data as [String : Any])
+                result?.keepCallback = true
+                commandDelegate.send(result, callbackId: functionCallbackId)
+            }
+            catch {
+                let result = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "json serialize error")
+                result?.keepCallback = true
+                commandDelegate.send(result, callbackId: functionCallbackId)
+
+            }
         default:
             break
         }
