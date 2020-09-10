@@ -26,5 +26,21 @@
     <dependency id="cordova-plugin-add-swift-support" version="2.0.2"/>
     <preference name="UseSwiftLanguageVersion" default="4" />
   </platform>
+  
+  <!-- Android -->
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="CDVWebviewBoard">
+        <param name="android-package" value="jp.rabee.CDVWebviewBoard"/>
+        <param name="onload" value="true" />
+      </feature>
+    </config-file>
+    <source-file src="src/android/java/CDVWebviewBoard.kt" target-dir="app/src/main/kotlin/jp/rabee"/>
+
+    <!--for support kotlin-->
+    <hook type="after_platform_add" src="scripts/android/copy_build_extras.js" />
+    <hook type="after_plugin_add" src="scripts/android/copy_build_extras.js" />
+
+  </platform>
 
 </plugin>
