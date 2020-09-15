@@ -84,7 +84,7 @@ import WebKit
         webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height), configuration: webConfiguration)
         self.webview!.uiDelegate = self
         self.webview!.navigationDelegate = self
-
+        
 //        set url
         urlString = urlTemp
 //        let url = URL(fileURLWithPath: urlString, isDirectory: false)
@@ -92,6 +92,7 @@ import WebKit
         let urlRequest = URLRequest(url: url!)
         webview!.load(urlRequest)
         self.webView.addSubview(webview!)
+        self.webview?.scrollView.delegate = self
 
         let result = CDVPluginResult(status: CDVCommandStatus_OK)
         commandDelegate.send(result, callbackId: command.callbackId)
@@ -162,7 +163,7 @@ import WebKit
 
 
 
-extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate  {
+extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrollViewDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         self.urlString = webView.url?.absoluteString
         decisionHandler(WKNavigationResponsePolicy.allow)
@@ -196,6 +197,11 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate  {
             break
         }
     }
-
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+         return nil
+     }
+    func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
+        scrollView.pinchGestureRecognizer?.isEnabled = false
+    }
 
 }
