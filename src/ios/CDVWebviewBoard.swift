@@ -6,6 +6,9 @@ import WebKit
     var urlString:String!
     var functionCallbackId = ""
     var webview:WKWebView?
+    private var _observers = [NSKeyValueObservation]()
+    var canGoForwardCallbackId = ""
+    var canGoBackwordCallbackId = ""
     
     struct Rect {
         var top = 0
@@ -61,7 +64,6 @@ import WebKit
     }
     
     @objc func add(_ command: CDVInvokedUrlCommand) {
-
         guard
         let data = command.argument(at: 0) as? [String: Any],
         let urlTemp = data["url"] as? String,
@@ -81,6 +83,8 @@ import WebKit
         userController.add(self, name: "native")
         let webConfiguration = WKWebViewConfiguration()
         webConfiguration.userContentController = userController
+        webConfiguration.allowsInlineMediaPlayback = true
+//        webConfiguration.preferences.javaEnabled = true
         webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height), configuration: webConfiguration)
         self.webview!.uiDelegate = self
         self.webview!.navigationDelegate = self
@@ -91,9 +95,13 @@ import WebKit
         let url = URL(string: urlString)
         let urlRequest = URLRequest(url: url!)
         webview!.load(urlRequest)
-        self.webView.addSubview(webview!)
         self.webview?.scrollView.delegate = self
-
+        self.webView.addSubview(webview!)
+        
+        
+        self.webview?.addObserver(self, forKeyPath: "canGoBack", options:.new, context: nil)
+        self.webview?.addObserver(self, forKeyPath: "canGoForward", options:.new, context: nil)
+        
         let result = CDVPluginResult(status: CDVCommandStatus_OK)
         commandDelegate.send(result, callbackId: command.callbackId)
     }
@@ -158,7 +166,33 @@ import WebKit
     @objc func setOnFunctionCallback(_ command: CDVInvokedUrlCommand) {
         functionCallbackId = command.callbackId
     }
-
+    
+    // callback
+    @objc func setOnCanGoForwardCallbackId(_ command: CDVInvokedUrlCommand) {
+        canGoForwardCallbackId = command.callbackId
+    }
+    
+    // callback
+    @objc func setOnCanGoBackCallbackId(_ command: CDVInvokedUrlCommand) {
+        canGoBackwordCallbackId = command.callbackId
+    }
+    
+    // 戻る進むの監視
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        guard let webview = self.webview else {return}
+        
+        if (keyPath == "canGoBack") {
+            let canGoBack = webview.canGoBack
+            let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: canGoBack)
+            commandDelegate.send(result, callbackId: canGoBackwordCallbackId)
+        }
+        
+        if (keyPath == "canGoForward") {
+            let canGoForward = webview.canGoForward
+            let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: canGoForward)
+            commandDelegate.send(result, callbackId: canGoForwardCallbackId)
+        }
+    }
 }
 
 
@@ -166,9 +200,11 @@ import WebKit
 extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrollViewDelegate {
     func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
         self.urlString = webView.url?.absoluteString
+        self.webview?.scrollView.zoomScale = 1 // 遷移があるたびに scale を元に戻す
         decisionHandler(WKNavigationResponsePolicy.allow)
+                    
     }
-    
+    // スクリプト実行コマンド
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.name {
         case "native":
@@ -201,7 +237,6 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrol
          return nil
      }
     func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
-        scrollView.pinchGestureRecognizer?.isEnabled = false
+        scrollView.pinchGestureRecognizer?.isEnabled = true
     }
-
 }
