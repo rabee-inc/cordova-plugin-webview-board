@@ -196,12 +196,14 @@ import WebKit
         if (keyPath == "canGoBack") {
             let canGoBack = webview.canGoBack
             let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: canGoBack)
+            result?.keepCallback = true
             commandDelegate.send(result, callbackId: canGoBackwordCallbackId)
         }
         
         if (keyPath == "canGoForward") {
             let canGoForward = webview.canGoForward
             let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: canGoForward)
+            result?.keepCallback = true
             commandDelegate.send(result, callbackId: canGoForwardCallbackId)
         }
     }
