@@ -101,7 +101,7 @@ import WebKit
         
         self.webview?.addObserver(self, forKeyPath: "canGoBack", options:.new, context: nil)
         self.webview?.addObserver(self, forKeyPath: "canGoForward", options:.new, context: nil)
-        
+                self.webview?.addObserver(self, forKeyPath: "URL", options:.new, context: nil)
         let result = CDVPluginResult(status: CDVCommandStatus_OK)
         commandDelegate.send(result, callbackId: command.callbackId)
     }
@@ -133,6 +133,7 @@ import WebKit
     @objc func forward(_ command: CDVInvokedUrlCommand) {
         if isAdded() {
             webview!.goForward()
+            webview!.scrollView.zoomScale = 1
             let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "ok")
             commandDelegate.send(result, callbackId: command.callbackId)
         } else {
@@ -144,6 +145,7 @@ import WebKit
     @objc func back(_ command: CDVInvokedUrlCommand) {
         if isAdded() {
             webview!.goBack()
+            webview!.scrollView.zoomScale = 1
             let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: "ok")
             commandDelegate.send(result, callbackId: command.callbackId)
         } else {
@@ -181,6 +183,16 @@ import WebKit
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         guard let webview = self.webview else {return}
         
+        // url が
+        if (keyPath == "URL") {
+            guard   let webview = self.webview,
+                    let view = object as? WKWebView,
+                    let url = view.url else {return}
+    
+            urlString = url.absoluteString
+            webview.scrollView.zoomScale = 1
+        }
+        
         if (keyPath == "canGoBack") {
             let canGoBack = webview.canGoBack
             let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: canGoBack)
@@ -204,7 +216,7 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrol
         decisionHandler(WKNavigationResponsePolicy.allow)
                     
     }
-    // スクリプト実行コマンド
+    
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
         switch message.name {
         case "native":
@@ -238,5 +250,8 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrol
      }
     func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
         scrollView.pinchGestureRecognizer?.isEnabled = true
+    }
+
+    func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation:WKNavigation!) {
     }
 }

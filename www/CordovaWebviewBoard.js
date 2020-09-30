@@ -5,7 +5,11 @@ class WebviewBoard {
     this.exec = require('cordova/exec');
     this._listener = {};
     this.isShown = false;
+    // message
     this.registerEvents('message', 'setOnFunctionCallback', params);
+    // 戻る進むイベント
+    this.registerEvents('goForward', 'setOnCanGoForwardCallbackId', params);
+    this.registerEvents('goBack', 'setOnCanGoBackCallbackId', params);
     this.observer = new MutationObserver(mutations => {
       mutations.forEach(mutation => {
         const {type, attributeName} = mutation;
