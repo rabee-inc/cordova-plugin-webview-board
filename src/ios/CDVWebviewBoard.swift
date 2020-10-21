@@ -89,6 +89,9 @@ import WebKit
         self.webview!.uiDelegate = self
         self.webview!.navigationDelegate = self
         
+        let userAgent = self.commandDelegate.settings["appenduseragent"] as? String
+        webview?.customUserAgent = userAgent
+        
 //        set url
         urlString = urlTemp
 //        let url = URL(fileURLWithPath: urlString, isDirectory: false)
