@@ -85,12 +85,14 @@ import WebKit
         webConfiguration.userContentController = userController
         webConfiguration.allowsInlineMediaPlayback = true
 //        webConfiguration.preferences.javaEnabled = true
+        
+        let userAgent = self.commandDelegate.settings["appenduseragent"] as? String
+        webConfiguration.applicationNameForUserAgent = userAgent
+        
         webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height), configuration: webConfiguration)
         self.webview!.uiDelegate = self
         self.webview!.navigationDelegate = self
         
-        let userAgent = self.commandDelegate.settings["appenduseragent"] as? String
-        webview?.customUserAgent = userAgent
         
 //        set url
         urlString = urlTemp
