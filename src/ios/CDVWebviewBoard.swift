@@ -261,4 +261,13 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrol
 
     func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation:WKNavigation!) {
     }
+
+    // iPad mini よりも大きな端末に関しては user agent に iPad の文字列が入っていないのでそのための対応
+    @available(iOS 13.0, *)
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
+        // preferences.preferredContentMode デフォルト値は .recommended
+        preferences.preferredContentMode = .mobile
+        //decisionHandler(.cancel, preferences)
+        decisionHandler(.allow, preferences)
+    }
 }
