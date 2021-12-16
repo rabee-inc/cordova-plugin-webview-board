@@ -49,8 +49,11 @@ import WebKit
 
     
     @objc override func pluginInitialize() {
-//        code for inspection
-//        urlString = Bundle.main.path(forResource: "www/subview", ofType: "html")
+        let action = #selector(orientationDidChange(_:))
+        let center = NotificationCenter.default
+        let name = NSNotification.Name.UIDeviceOrientationDidChange
+        center.addObserver(self, selector: action, name: name, object: nil)
+
     }
     
     @objc func initialize(_ command: CDVInvokedUrlCommand) {
@@ -92,8 +95,7 @@ import WebKit
         webview = WKWebView(frame: CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height), configuration: webConfiguration)
         self.webview!.uiDelegate = self
         self.webview!.navigationDelegate = self
-        
-        
+        self.webview!.autoresizingMask = [.flexibleWidth, .flexibleHeight]
 //        set url
         urlString = urlTemp
 //        let url = URL(fileURLWithPath: urlString, isDirectory: false)
@@ -101,6 +103,7 @@ import WebKit
         let urlRequest = URLRequest(url: url!)
         webview!.load(urlRequest)
         self.webview?.scrollView.delegate = self
+        self.webView?.scrollView.delegate = self
         self.webView.addSubview(webview!)
         
         
@@ -163,7 +166,12 @@ import WebKit
         guard
         let rectData = command.argument(at: 0) as? [String: Any] else {return}
         let rect = Rect(data: rectData)
-        webview!.frame = CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height)
+            webview!.frame = CGRect(x: rect.left, y: rect.top, width: rect.width, height: rect.height)
+        
+        // webview のスクロールをリセットする
+        guard let webview = self.webview, let webView = self.webView else {return}
+        webView.scrollView.zoomScale = 1;
+        webview.scrollView.zoomScale = 1;
     }
     
     private func isAdded() -> Bool {
@@ -182,6 +190,11 @@ import WebKit
     // callback
     @objc func setOnCanGoBackCallbackId(_ command: CDVInvokedUrlCommand) {
         canGoBackwordCallbackId = command.callbackId
+    }
+
+    // 回転検知時
+    @objc func orientationDidChange(_ notification: NSNotification) {
+//        guard let webview = self.webview, let webView = self.webView else {return}
     }
     
     // 戻る進むの監視
@@ -221,7 +234,6 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrol
         self.urlString = webView.url?.absoluteString
         self.webview?.scrollView.zoomScale = 1 // 遷移があるたびに scale を元に戻す
         decisionHandler(WKNavigationResponsePolicy.allow)
-                    
     }
     
     func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
@@ -252,9 +264,6 @@ extension CDVWebviewBoard: WKScriptMessageHandler, WKNavigationDelegate, UIScrol
             break
         }
     }
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-         return nil
-     }
     func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
         scrollView.pinchGestureRecognizer?.isEnabled = true
     }
